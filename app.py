@@ -47,9 +47,19 @@ def view_session(session_id):
     if not os.path.exists(session_dir):
         return "Sesi foto tidak ditemukan.", 404
         
-    print_files = os.listdir(prints_dir) if os.path.exists(prints_dir) else []
+    # Ambil dan urutkan foto Print terbaru
+    print_files = []
+    if os.path.exists(prints_dir):
+        all_prints = []
+        for f in os.listdir(prints_dir):
+            if f.lower().endswith(('.png', '.jpg', '.jpeg')):
+                f_path = os.path.join(prints_dir, f)
+                f_mtime = os.path.getmtime(f_path)
+                all_prints.append((f, f_mtime))
+        all_prints.sort(key=lambda x: x[1])
+        print_files = [item[0] for item in all_prints]
     
-    # Filter ketat: Hanya ambil 4 foto original terbaru untuk sesi ini
+    # Ambil dan urutkan 4 foto Original terbaru
     orig_files = []
     if os.path.exists(originals_dir):
         all_orig = []
@@ -58,11 +68,11 @@ def view_session(session_id):
                 f_path = os.path.join(originals_dir, f)
                 f_mtime = os.path.getmtime(f_path)
                 all_orig.append((f, f_mtime))
-        # Urutkan berdasarkan waktu dan ambil 4 terakhir saja
         all_orig.sort(key=lambda x: x[1])
         orig_files = [item[0] for item in all_orig[-4:]]
     
-    print_url = f"/file/{session_id}/Prints/{print_files[0]}" if print_files else ""
+    # Ambil print file yang paling terakhir (terbaru)
+    print_url = f"/file/{session_id}/Prints/{print_files[-1]}" if print_files else ""
     original_urls = [f"/file/{session_id}/Originals/{f}" for f in orig_files]
     
     html_template = """
